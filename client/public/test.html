@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Band-Channel Pairing Test</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1a1a1a; color: #fff; }
+        select, button { padding: 10px; margin: 10px; font-size: 16px; }
+        #result { margin-top: 20px; padding: 20px; background: #2a2a2a; border: 2px solid #00d9ff; }
+    </style>
+</head>
+<body>
+    <h1>Band-Channel Pairing Test</h1>
+    <div>
+        <label>Select Band:</label>
+        <select id="bandSelect">
+            <option value="all">All Bands</option>
+            <option value="1">Band 1</option>
+            <option value="3">Band 3</option>
+            <option value="7">Band 7</option>
+        </select>
+    </div>
+    <div>
+        <label>Available Channels:</label>
+        <select id="channelSelect">
+            <option value="all">All Channels</option>
+        </select>
+    </div>
+    <div id="result"></div>
+
+    <script>
+        // Load data
+        fetch('/trp-data.json')
+            .then(r => r.json())
+            .then(data => {
+                window.trpData = data;
+                updateChannels();
+            });
+
+        const bandSelect = document.getElementById('bandSelect');
+        const channelSelect = document.getElementById('channelSelect');
+        const result = document.getElementById('result');
+
+        bandSelect.addEventListener('change', updateChannels);
+
+        function updateChannels() {
+            const selectedBand = bandSelect.value;
+            const channelSelect = document.getElementById('channelSelect');
+            
+            let channels = [];
+            if (selectedBand === 'all') {
+                channels = [...new Set(window.trpData.map(r => r.Channel))];
+            } else {
+                const bandData = window.trpData.filter(r => r.Band === parseInt(selectedBand));
+                channels = [...new Set(bandData.map(r => r.Channel))];
+            }
+            
+            channels.sort((a, b) => a - b);
+            
+            channelSelect.innerHTML = '<option value="all">All Channels</option>';
+            channels.forEach(ch => {
+                const opt = document.createElement('option');
+                opt.value = ch;
+                opt.textContent = `Ch ${ch}`;
+                channelSelect.appendChild(opt);
+            });
+            
+            result.innerHTML = `
+                <strong>Selected Band:</strong> ${selectedBand}<br>
+                <strong>Available Channels:</strong> ${channels.join(', ')}<br>
+                <strong>Channel Count:</strong> ${channels.length}
+            `;
+        }
+    </script>
+</body>
+</html>
